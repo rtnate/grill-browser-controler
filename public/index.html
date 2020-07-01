@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<title>Grill Controller</title>
+		<style>
+			.set-button {
+				width: 100%;
+				text-align: center;
+				border-radius: 5px;
+            }
+            @keyframes fan-rotate {
+                0%   {transform: rotate(0);}
+                12.5%  {transform: rotate(45deg);}
+                25%  {transform: rotate(90deg);}
+                37.5%  {transform: rotate(135deg);}
+                50%  {transform: rotate(180deg);}
+                62.5%  {transform: rotate(235deg);}
+                75%  {transform: rotate(270deg);}
+                87.5%  {transform: rotate(315deg);}
+                100% {transform: rotate(360deg);}
+            }
+            .fan-image 
+            {
+                width: 100%;
+                height: 100%;
+                animation-name: fan-rotate;
+                animation-duration: 0s;
+                animation-iteration-count: infinite;
+                animation-timing-function: linear;
+                transition: animation-duration 3s;
+            }
+            .fan-image.fan-on 
+            {
+                animation-duration: 1s;
+            }
+            .fan-image.fan-on.fan-wait 
+            {
+                animation-duration: 3s;
+            }
+		</style>
+	</head>
+	<body>
+		<div class="container my-3">
+			<div class="row">
+				<div class="col mx-auto text-center">
+					<h2>Grill Temperature Controller</h2>
+				</div>
+			</div>
+			<div class="row" id="ControlMain">
+				<div class="col-4 offset-1 mt-2">
+					<label for="MainTempDisplay" class="mx-2">
+						Grill Temperature:
+					</label>
+					<input class="text-center" type="text" name="main-temp-display" id="MainTempDisplay" readonly value="65.0 °F">
+				</div>
+				<div class="col-4 offset-2 mt2">
+					<label for="MainTargetDisplay" class="mx-2">
+						Target Temperature:
+					</label>
+					<input class="text-center" type="text" name="main-target-display" id="MainTargetDisplay" readonly value="100.0 °F">
+				</div>
+			</div>
+			<div class="row mt-3">
+				<div class="col-4" id="GrillStatus">
+                    <div class="row text-center mb-2">
+                        <h3 class="text-center mb-0">Grill Status:</h3>
+                        <small id="StatusGrillConnection">Grill Disconnected</small>
+                    </div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="StatusGrillIPSelection">Grill IP:</label>
+						<input class="col-3" type="text" name="control-fan-speed-selection" id="StatusGrillIPSelection" placeholder="IP Address">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="StatusGrillIPSelection">Set</button>
+						</div>
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-8 text-right pr-5" for="StatusCurrentTemp">Current Temp:</label>
+						<input class="col-4" type="text" name="status-current-temp" id="StatusCurrentTemp" readonly value="65.0">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-8 text-right pr-5" for="StatusFanState">Fan Status:</label>
+						<input class="col-4" type="text" name="status-current-temp" id="StatusFanState" readonly value="OFF">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-8 text-right pr-5" for="StatusFanSpeed">Fan Speed:</label>
+						<input class="col-4" type="text" name="status-current-temp" id="StatusFanSpeed" readonly value="OFF">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-8 text-right pr-5" for="StatusFanDutyCycle">Fan Duty Cycle:</label>
+						<input class="col-4" type="text" name="status-current-temp" id="StatusFanDutyCycle" readonly value="15s per 60s">
+					</div>
+                    <div class="row my-1">
+                    <div class="col-4 offset-6 my-2">
+                        <img id="StatusFanImage" class="fan-image" src="fanCentered.svg" alt="">
+                    </div>
+                    </div>
+				</div>
+				<div class="col-4" id="GrillControl">
+					<h3 class="text-center mb-3">Grill Control:</h3>
+					<div class="row data-field-group my-1">
+						<label class="col-6 text-right pr-5" for="ControlCurrentMode">Current Mode:</label>
+						<input class="col-6" type="text" name="control-current-modue" id="ControlCurrentMode" readonly value="DISABLED">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-6 text-right pr-5" for="ControlModeSelection">Control Mode:</label>
+						<select class="col-4" name="control-mode-selection" id="ControlModeSelection">
+							<option value="0">Disabled</option>
+                            <option value="1">Manul</option>
+							<option value="2">Standard</option>
+							<option value="3">PID</option>
+						</select>
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="ControlModeSelection">Set</button>
+						</div>
+					</div>
+					<div class="row data-field-group my-1 mt-2">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlCurrentTargetTemp">Current Target:</label>
+						<input class="col-3" type="text" name="control-current-target-temp" id="ControlCurrentTargetTemp" readonly value="100.0">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlTempSelection">Target Temp:</label>
+						<input class="col-3" type="text" name="control-target-temp-selection" id="ControlTempSelection" placeholder="Temp">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="ControlTempSelection">Set</button>
+						</div>
+					</div>
+					<div class="row data-field-group my-1 mt-2">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlCurrentFanSpeed">Current Fan Speed:</label>
+						<input class="col-3" type="text" name="control-current-fan-speed" id="ControlCurrentFanSpeed" readonly value="0">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlFanSpeedSelection">Fan Speed:</label>
+						<input class="col-3" type="text" name="control-fan-speed-selection" id="ControlFanSpeedSelection" placeholder="Speed">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="ControlFanSpeedSelection">Set</button>
+						</div>
+					</div>
+					<div class="row data-field-group my-1 mt-2">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlCurrentDutyCycle">Current Duty Cycle:</label>
+						<input class="col-5" type="text" name="control-current-fan-speed" id="ControlCurrentDutyCycle" readonly value="15s per 60s">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-4 text-right pr-3" for="ControlDutyCycleSelectionOn">Duty Cycle:</label>
+						<input class="col-2" type="text" name="control-duty-cycle-selection-on" id="ControlDutyCycleSelectionOn" placeholder="On">
+						<label class="col-2 text-center" for="ControlDutyCycleSelectionCycle">per</label>
+						<input class="col-2" type="text" name="control-duty-cycle-selection-off" id="ControlDutyCycleSelectionCycle" placeholder="Cycle">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="ControlDutyCycleSelectionOn">Set</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-4" id="PidControl">
+                    <h3 class="text-center mb-3">PID Control:</h3>
+					<div class="row data-field-group my-1 mt-2">
+						<label class="col-6 text-right pr-3" for="PidCurrentGains">Settings: </label>
+						<input class="col-6" type="text" name="control-current-fan-speed" id="PidCurrentGains" readonly value="P: 0.00 I: 0.00 D: 0.00">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="PidGainSelection">P (Gain):</label>
+						<input class="col-3" type="text" name="pid-gain-selection" id="PidGainSelection" placeholder="P">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="PidGainSelection">Set</button>
+						</div>
+					</div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="PidResetSelection">I (Reset):</label>
+						<input class="col-3" type="text" name="pid-reset-selection" id="PidResetSelection" placeholder="I">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="PidResetSelection">Set</button>
+						</div>
+					</div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="PidRateSelection">D (Rate):</label>
+						<input class="col-3" type="text" name="pid-rate-selection" id="PidRateSelection" placeholder="D">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="PidRateSelection">Set</button>
+						</div>
+					</div>
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 text-right pr-3" for="PidCurrentFanSpeeds">Fan Speeds: </label>
+						<input class="col-6" type="text" name="pid-current-fan-speeds" id="PidCurrentFanSpeeds" readonly value="Max: 0 Min: 0">
+					</div>
+					<div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="PidMinFanSpeedSelection">Min:</label>
+						<input class="col-3" type="text" name="pid-min-fan-speed-selection" id="PidMinFanSpeedSelection" placeholder="min">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="PidMinFanSpeedSelection">Set</button>
+						</div>
+					</div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="PidMaxFanSpeedSelection">Max:</label>
+						<input class="col-3" type="text" name="pid-max-fan-speed" id="PidMaxFanSpeedSelection" placeholder="max">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="PidMaxFanSpeedSelection">Set</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12" id="Logger"></div>
+			</div>
+		</div>
+        <script type="text/javascript" src="js/vendors~main.js"></script>
+        <script type="text/javascript" src="js/main.js">
+        </script>
+	</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "grill-controller",
+  "version": "1.0.0",
+  "description": "Grill Temperature Controller Interface",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx webpack --config webpack.config.js",
+    "watch": "npx webpack --config webpack.config.js --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nate Taylor",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-loader": "^7.0.5",
+    "tsc": "^1.20150623.0",
+    "typescript": "^3.9.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "@types/plotly.js": "^1.50.13",
+    "ify-loader": "^1.1.0",
+    "plotly.js": "^1.54.5",
+    "transform-loader": "^0.2.4",
+    "ts-event-handlers-lite": "^0.2.9"
+  }
+}
