@@ -66,8 +66,11 @@ export class GrillStatus
         this.comms.getGrillStatus().then(
             (data) => 
             {
-                this.loadNewStatus(data);
-                this.updated();
+                if (data)
+                {
+                    this.loadNewStatus(data);
+                    this.updated();
+                }
             }
         );
     }

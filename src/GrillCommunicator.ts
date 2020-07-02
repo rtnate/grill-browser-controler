@@ -6,6 +6,7 @@ export class GrillCommunicator
     protected ip = "";
     protected successfulConnection = false;
     protected hasConnected = false;
+    protected failCount = 0;
 
     constructor()
     {
@@ -42,9 +43,14 @@ export class GrillCommunicator
                 }
             ).catch(
                 (error) => {
-                    console.error("Status Update Failed: ", error);
-                    this.commsFailed(this.ip);
-                    reject(error);
+                    this.failCount++;
+                    if (this.failCount > 5)
+                    {
+                        console.error("Status Update Failed: ", error);
+                        this.commsFailed(this.ip);
+                        reject(error);
+                    }
+                    else resolve(null);
                 }
             )
         });
@@ -117,6 +123,7 @@ export class GrillCommunicator
 
     protected commsSuccessful(ip: string)
     {
+        this.failCount = 0;
         this.successfulConnection = true;
         if (!this.hasConnected) this.hasConnected = true;
         this.updateMessage(("Grill Connected at " + ip));
