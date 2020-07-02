@@ -9,6 +9,9 @@ export class GrillPIDController extends PIDControler
     protected minSpeed = 100;
     protected maxCycle = 30;
     protected enabled = false;
+    protected outputSpeed = 0;
+    protected outputDuty = 0;
+    protected outputCycle = 0;
 
     constructor(protected comms: GrillCommunicator)
     {
@@ -40,24 +43,33 @@ export class GrillPIDController extends PIDControler
 
     get fanSpeedMin()
     {
-        return this.maxSpeed;
+        return this.minSpeed;
     }
 
     set fanSpeedMin(value: number)
     {
-        this.maxSpeed = value;
+        this.minSpeed = value;
         this.changed('fanSpeedMax', value);
     }
+
+    get fanSpeedOut(){ return this.outputSpeed; };
+
+    get fanDutyOut(){ return this.outputDuty; };
+
+    get fanCycleOn(){ return (this.fanDutyOut / 100) * this.fanCycleOut; };
+
+    get fanCycleOut(){ return this.outputCycle; };
 
     processTemperature(newTemp: number)
     {
         let controlVal = this.calculate(newTemp);
         controlVal = this.mapControlVal(controlVal);
-        let fanSpeed = this.mapFanSpeed(controlVal);
+        this.outputSpeed = this.mapFanSpeed(controlVal);
         let cycleOn = this.mapDutyCycle(controlVal);
-        let cycleRate = 60;
-        let fanDuty = (cycleOn / cycleRate) * 100;
-        if (this.isEnabled) this.comms.setFan(fanSpeed, fanDuty, cycleRate);
+        this.outputCycle = 60;
+        this.outputDuty = (cycleOn / this.outputCycle) * 100;
+        this.changed('fanSpeedOut', this.outputSpeed);
+        if (this.isEnabled) this.comms.setFan(this.outputSpeed, this.outputDuty, this.outputCycle);
     }
 
     protected mapControlVal(value: number)
@@ -106,6 +118,8 @@ export class GrillPIDController extends PIDControler
             case 'PidMaxFanSpeedSelection':
                 this.fanSpeedMax = parseFloat(event.value);
                 return;
+            case 'ControlTempSelection':
+                this.target = parseFloat(event.value);
             default:
                 return;
         }

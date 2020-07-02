@@ -30,6 +30,7 @@ export class GrillController
     {
         this.status.onUpdate((status) => this.updateStatus(status));
         this.basicController.onUpdate((controller) => this.updateControllerStatus(controller));
+        this.pidController.onChange((event: PIDControllerChangedEvent) => this.pidValueChanged(event));
         this.setEvents.on('set', (event: SetButtonClickedEvent) => this.basicController.onSetButtonClick(event));
         this.setEvents.on('set', (event: SetButtonClickedEvent) => this.grillComms.onSetButtonClick(event));
         this.setEvents.on('set', (event: SetButtonClickedEvent) => this.onSetButtonClick(event));
@@ -47,6 +48,7 @@ export class GrillController
                 button.onclick = (event) => this.setButtonClicked(button as HTMLButtonElement, event);
             }
         });
+        this.loadControllerStatus();
         this.status.enableAutoUpdate(2000);
         console.log("Grill Controller Booted.");
     }
@@ -123,13 +125,32 @@ export class GrillController
         let fanStatus = status.fanStatus ? 'ON' : 'OFF';
         this.updateFanGraphicDisplay(status.fanStatus, status.fanSpeed);
         let dutyCycle = `${status.fanOnTime.toString()}s per ${status.fanCycleTime.toString()}s`;
-        this.setInputValueById('MainTempDisplay', tempString);
+        this.updateMainTempDisplay(temp, tempString);
         this.setInputValueById('StatusCurrentTemp', tempString);
         this.setInputValueById('StatusFanState', fanStatus);
         this.setInputValueById('StatusFanSpeed', fanSpeed);
         this.setInputValueById('StatusFanDutyCycle', dutyCycle);
     }
 
+    protected updateMainTempDisplay(temp: number, display: string)
+    {
+        let el = document.getElementById('MainTempDisplay');
+        if (!el) return;
+        let ip = el as HTMLInputElement;
+        let target = this.basicController.targetTemp;
+        if (this.pidController.isEnabled) target = this.pidController.target;
+        if (temp > target)
+        {
+            ip.classList.add('text-danger');
+            ip.classList.remove('text-success')
+        }
+        else
+        {
+            ip.classList.add('text-success');
+            ip.classList.remove('text-danger')
+        }
+        ip.value = display;
+    }
     protected updateTemperatures(newTemp: number)
     {
         this.basicController.newTemperature(newTemp);
@@ -178,6 +199,39 @@ export class GrillController
         this.setInputValueById('ControlCurrentTargetTemp', tempString);
         this.setInputValueById('ControlCurrentFanSpeed', fanSpeed.toString());
         this.setInputValueById('ControlCurrentDutyCycle', dutyString);
+        this.setInputValueById('ControlCurrentPositiveH', controller.positiveHys.toString());
+        this.setInputValueById('ControlCurrentNegativeH', controller.negativeHys.toString());
+        this.storeControllerStatus();
+    }
+
+    protected storeControllerStatus()
+    {
+        let status = this.basicController.getState();
+        let data = 
+        {
+            basicController: status
+        };
+        let dataString = JSON.stringify(data);
+        localStorage.setItem('bbq-data', dataString);
+    }
+
+    protected loadControllerStatus()
+    {
+        let dataString = localStorage.getItem('bbq-data');
+        if (dataString)
+        {
+            try{
+                let data = JSON.parse(dataString);
+                if (data.hasOwnProperty('basicController'))
+                {
+                    this.basicController.loadState(data.basicController);
+                }
+            }
+            catch (e)
+            {
+                console.error("Couldn't load controller state.", e);
+            }
+        }
     }
 
     protected getControllerStateDisplay()
@@ -206,12 +260,13 @@ export class GrillController
 
     protected pidValueChanged(event: PIDControllerChangedEvent)
     {
+        var display = '';
         switch(event.parameter)
         {
             case 'P':
             case 'I':
             case 'D':
-                let display = 'P: ' + this.pidController.P.toPrecision(2) + ' ';
+                display = 'P: ' + this.pidController.P.toPrecision(2) + ' ';
                 display += 'I: ' + this.pidController.I.toPrecision(2) + ' ';
                 display += 'D: ' + this.pidController.D.toPrecision(2);
                 this.setInputValueById('PidCurrentGains', display);
@@ -221,6 +276,22 @@ export class GrillController
                 display = 'Min: ' + this.pidController.fanSpeedMin.toString() + ' ';
                 display += 'Max: ' + this.pidController.fanSpeedMax.toString();
                 this.setInputValueById('PidCurrentFanSpeeds', display);
+                return;
+            case 'Output':
+                display = 'P: ' + this.pidController.PState.toPrecision(2) + ' ';
+                display += 'I: ' + this.pidController.IState.toPrecision(2) + ' ';
+                display += 'D: ' + this.pidController.DState.toPrecision(2);
+                this.setInputValueById('PidCurrentState', display);
+                var output = this.pidController.output;
+                this.setInputValueById('PidCurrentOutput', output.toString());
+                return; 
+            case 'fanSpeedOut':
+                var speed = this.pidController.fanSpeedOut;
+                this.setInputValueById('PidOutputFanSpeed', speed.toString());
+                var dutyOn = this.pidController.fanCycleOn;
+                var dutyOff = this.pidController.fanCycleOut;
+                var dutyString = dutyOn.toString() + 's per' + dutyOff.toString() + 's';
+                this.setInputValueById('PidOutputFanDuty', dutyString);
                 return;
         }
     }

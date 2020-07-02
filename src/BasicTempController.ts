@@ -18,6 +18,14 @@ export class BasicTempController
 
     protected manualMode = false;
 
+    protected posH = 0;
+
+    protected negH = 0;
+
+    protected curTemp = 0;
+    
+    protected lastTemp = 0;
+
     constructor(protected comms: GrillCommunicator)
     {
 
@@ -41,6 +49,22 @@ export class BasicTempController
     {
         this.active = false;
         this.manualMode = true;
+        this.updated();
+    }
+
+    get positiveHys(){ return this.posH; };
+
+    set positiveHys(val: number)
+    {
+        this.posH = val;
+        this.updated();
+    }
+
+    get negativeHys(){ return this.negH; };
+
+    set negativeHys(val: number)
+    {
+        this.negH = val;
         this.updated();
     }
 
@@ -119,6 +143,12 @@ export class BasicTempController
                 }
                 this.onTime = dutyOn;
                 break;
+            case 'ControlPositiveHSetting':
+                this.positiveHys = parseFloat(event.value);
+                break;
+            case 'ControlNegativeHSetting':
+                this.negativeHys = parseFloat(event.value);
+                break;
         }
         if (this.manualMode == true)
         {
@@ -133,13 +163,31 @@ export class BasicTempController
 
     newTemperature(temp: number)
     {
+        this.lastTemp = this.curTemp;
+        this.curTemp = temp;
         if (this.active) this.control(temp);
 
     }
 
     protected control(currentTemp: number)
     {
-        if (currentTemp < this.targetTemp) this.turnOnFan();
+        let change = currentTemp - this.lastTemp;
+        var setPoint = this.targetTemp;
+        //IF TEMPERATURE IS INCREASING
+        if (change > 0)
+        {
+            //Set Point is the target less positive going hysteresis
+            setPoint = this.targetTemp - this.posH;
+        }
+        //IF TEMPERATURE IS DECREASING 
+        else if (change < 0)
+        {
+            //Set Point is the target less negative going hysteresis
+            var setPoint = this.targetTemp - this.negH;
+        }
+        //IF TEMPERATURE IS NOT CHANGING, SET POINT IS TARGET
+        else {}
+        if (currentTemp < setPoint) this.turnOnFan();
         else this.turnOffFan();
     }
 
@@ -156,6 +204,57 @@ export class BasicTempController
     protected updated()
     {
         this.updateListeners.forEach((listener) => listener(this));
+    }
+
+    getState()
+    {
+        let val = 
+        {
+            fanOnSpeed: this.fanOnSpeed,
+
+            controlTargetTemp: this.controlTargetTemp,
+
+            fanDuty: this.fanDuty,
+
+            fanCycle: this.fanCycle,
+
+            active: this.active,
+
+            manualMode: this.manualMode,
+
+            posH: this.posH,
+
+            negH: this.negH,
+
+            curTemp: this.curTemp,
+            
+            lastTemp: this.lastTemp,
+        };
+        return val;
+    }
+
+    loadState(state: any)
+    {
+        if (state.hasOwnProperty('fanOnSpeed')) this.fanOnSpeed = state.fanOnSpeed;
+
+        if (state.hasOwnProperty('controlTargetTemp')) this.controlTargetTemp = state.controlTargetTemp;
+
+        if (state.hasOwnProperty('fanDuty')) this.fanDuty = state.fanDuty;
+
+        if (state.hasOwnProperty('fanCycle')) this.fanCycle = state.fanCycle;
+
+        if (state.hasOwnProperty('active')) this.active = state.active;
+
+        if (state.hasOwnProperty('manualMode')) this.manualMode = state.manualMode;
+
+        if (state.hasOwnProperty('posH')) this.posH = state.posH;
+
+        if (state.hasOwnProperty('negH')) this.negH = state.negH;
+
+        if (state.hasOwnProperty('curTemp')) this.curTemp = state.curTemp;
+
+        if (state.hasOwnProperty('lastTemp')) this.lastTemp = state.lastTemp;
+        this.updated();
     }
 
 }

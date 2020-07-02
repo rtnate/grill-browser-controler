@@ -40,31 +40,45 @@
             {
                 animation-duration: 3s;
             }
+            #ControlMain label 
+            {
+                font-size: 1.25em;
+            }
+            #ControlMain input 
+            {
+                font-size: 1.25em;
+                font-weight: bold;
+            }
+            input:read-only 
+            {
+                background-color: #FAFAFA;
+                border-radius: 5px;
+            }
 		</style>
 	</head>
 	<body>
-		<div class="container my-3">
+		<div class="container-fluid my-3">
 			<div class="row">
 				<div class="col mx-auto text-center">
 					<h2>Grill Temperature Controller</h2>
 				</div>
 			</div>
 			<div class="row" id="ControlMain">
-				<div class="col-4 offset-1 mt-2">
+				<div class="col-5 offset-1 mt-2">
 					<label for="MainTempDisplay" class="mx-2">
 						Grill Temperature:
 					</label>
 					<input class="text-center" type="text" name="main-temp-display" id="MainTempDisplay" readonly value="65.0 °F">
 				</div>
-				<div class="col-4 offset-2 mt2">
+				<div class="col-5 mt-2">
 					<label for="MainTargetDisplay" class="mx-2">
 						Target Temperature:
 					</label>
 					<input class="text-center" type="text" name="main-target-display" id="MainTargetDisplay" readonly value="100.0 °F">
 				</div>
 			</div>
-			<div class="row mt-3">
-				<div class="col-4" id="GrillStatus">
+            <div class="row my-2">
+                <div class="col-4" id="GrillStatus">
                     <div class="row text-center mb-2">
                         <h3 class="text-center mb-0">Grill Status:</h3>
                         <small id="StatusGrillConnection">Grill Disconnected</small>
@@ -75,6 +89,10 @@
 						<div class="col-2">
 							<button class="set-button" type="button" data-target="StatusGrillIPSelection">Set</button>
 						</div>
+					</div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 text-right pr-1" for="StatusGrillConnectionState">Connection:</label>
+						<input class="col-5 offset-1 text-center" type="text" name="status-current-temp" id="StatusGrillConnectionState" readonly value="DISCONNECTED">
 					</div>
 					<div class="row data-field-group my-1">
 						<label class="col-8 text-right pr-5" for="StatusCurrentTemp">Current Temp:</label>
@@ -92,13 +110,16 @@
 						<label class="col-8 text-right pr-5" for="StatusFanDutyCycle">Fan Duty Cycle:</label>
 						<input class="col-4" type="text" name="status-current-temp" id="StatusFanDutyCycle" readonly value="15s per 60s">
 					</div>
-                    <div class="row my-1">
-                    <div class="col-4 offset-6 my-2">
-                        <img id="StatusFanImage" class="fan-image" src="fanCentered.svg" alt="">
-                    </div>
+                    <div class="row my-1 mt-3">
+                        <div class="col-4 offset-6 my-2">
+                            <img id="StatusFanImage" class="fan-image" src="fanCentered.svg" alt="">
+                        </div>
                     </div>
 				</div>
-				<div class="col-4" id="GrillControl">
+				<div class="col-8" id="Logger"></div>
+			</div>
+			<div class="row my-1">
+				<div class="col-4 offset-1" id="GrillControl">
 					<h3 class="text-center mb-3">Grill Control:</h3>
 					<div class="row data-field-group my-1">
 						<label class="col-6 text-right pr-5" for="ControlCurrentMode">Current Mode:</label>
@@ -108,7 +129,7 @@
 						<label class="col-6 text-right pr-5" for="ControlModeSelection">Control Mode:</label>
 						<select class="col-4" name="control-mode-selection" id="ControlModeSelection">
 							<option value="0">Disabled</option>
-                            <option value="1">Manul</option>
+                            <option value="1">Manual</option>
 							<option value="2">Standard</option>
 							<option value="3">PID</option>
 						</select>
@@ -151,12 +172,39 @@
 							<button class="set-button" type="button" data-target="ControlDutyCycleSelectionOn">Set</button>
 						</div>
 					</div>
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlCurrentPositiveH">Postive Hysteresis:</label>
+						<input class="col-5" type="text" name="control-current-fan-speed" id="ControlCurrentPositiveH" readonly value="0">
+					</div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlPositiveHSetting">Adjust:</label>
+						<input class="col-3" type="text" name="control-fan-speed-selection" id="ControlPositiveHSetting" placeholder="+ H">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="ControlPositiveHSetting">Set</button>
+						</div>
+					</div>
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlCurrentNegativeH">Negative Hysteresis:</label>
+						<input class="col-5" type="text" name="control-current-fan-speed" id="ControlCurrentNegativeH" readonly value="0">
+					</div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="ControlNegativeHSetting">Adjust:</label>
+						<input class="col-3" type="text" name="control-fan-speed-selection" id="ControlNegativeHSetting" placeholder="- H">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="ControlNegativeHSetting">Set</button>
+						</div>
+					</div>
 				</div>
-				<div class="col-4" id="PidControl">
+                <!--- PID Control Status -->
+				<div class="col-4 offset-2" id="PidControl">
                     <h3 class="text-center mb-3">PID Control:</h3>
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 text-right pr-3" for="PidCurrentState">State: </label>
+						<input class="col-6" type="text" name="pid-current-state" id="PidCurrentState" readonly value="P: 0.00 I: 0.00 D: 0.00">
+					</div>
 					<div class="row data-field-group my-1 mt-2">
 						<label class="col-6 text-right pr-3" for="PidCurrentGains">Settings: </label>
-						<input class="col-6" type="text" name="control-current-fan-speed" id="PidCurrentGains" readonly value="P: 0.00 I: 0.00 D: 0.00">
+						<input class="col-6" type="text" name="pid-current-gains" id="PidCurrentGains" readonly value="P: 0.00 I: 0.00 D: 0.00">
 					</div>
 					<div class="row data-field-group my-1">
 						<label class="col-6 offset-1 text-right pr-3" for="PidGainSelection">P (Gain):</label>
@@ -197,10 +245,20 @@
 							<button class="set-button" type="button" data-target="PidMaxFanSpeedSelection">Set</button>
 						</div>
 					</div>
+                    <!-- PID Output Display -->
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 text-right pr-3" for="PidCurrentOutput">Output: </label>
+						<input class="col-6" type="text" name="pid-current-output" id="PidCurrentOutput" readonly value="0">
+					</div>
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 text-right pr-3" for="PidOutputFanSpeed">Fan Speed: </label>
+						<input class="col-6" type="text" name="pid-output-fan-speed" id="PidOutputFanSpeed" readonly value="0">
+					</div>
+                    <div class="row data-field-group my-1 mt-2">
+						<label class="col-6 text-right pr-3" for="PidOutputFanDuty">Fan Duty: </label>
+						<input class="col-6" type="text" name="pid-output-fan-duty" id="PidOutputFanDuty" readonly value="0s per 0s">
+					</div>
 				</div>
-			</div>
-			<div class="row">
-				<div class="col-12" id="Logger"></div>
 			</div>
 		</div>
         <script type="text/javascript" src="js/vendors~main.js"></script>

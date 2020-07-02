@@ -90,7 +90,7 @@ export class PIDControler implements PIDControlerInterface
     calculate(input: number)
     {
         let now = new Date().getTime();
-        let elapsedTime = now - this.previousTime.getTime();
+        let elapsedTime = (now - this.previousTime.getTime()) / 1000;
         let error = this.setPoint - input;
         let cumError = error * elapsedTime;
         this.cumError += cumError;

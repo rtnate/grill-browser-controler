@@ -5,6 +5,7 @@ export class GrillCommunicator
 {
     protected ip = "";
     protected successfulConnection = false;
+    protected hasConnected = false;
 
     constructor()
     {
@@ -91,16 +92,50 @@ export class GrillCommunicator
         el.innerHTML = message;
     }
 
+    protected updateStatus(message: string)
+    {
+        let el = document.getElementById('StatusGrillConnectionState');
+        if (!el) return;
+        let ip = el as HTMLInputElement;
+        ip.value = message;
+        if (message == 'CONNECTED')
+        {
+            ip.classList.add('text-success');
+            ip.classList.remove('text-danger');
+        }
+        else if (message == 'DISCONNECTED')
+        {
+            ip.classList.remove('text-success');
+            ip.classList.remove('text-danger');
+        }
+        else 
+        {
+            ip.classList.remove('text-success');
+            ip.classList.add('text-danger');
+        }
+    }
+
     protected commsSuccessful(ip: string)
     {
         this.successfulConnection = true;
+        if (!this.hasConnected) this.hasConnected = true;
         this.updateMessage(("Grill Connected at " + ip));
+        this.updateStatus('CONNECTED');
     }
 
     protected commsFailed(ip: string)
     {
         this.successfulConnection = false;
-        this.updateMessage(("Grill failed to connect at " + ip));
+        if (this.hasConnected)
+        {
+            this.updateMessage('Grill Connection to' + ip + 'lost!');
+            this.updateStatus('LOST');
+        }
+        else 
+        {
+            this.updateMessage(("Grill failed to connect at " + ip));
+            this.updateStatus('DISCONNECTED');
+        }
     }
 
     async testRequest()
