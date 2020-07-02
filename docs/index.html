@@ -10,13 +10,35 @@
 				width: 100%;
 				text-align: center;
 				border-radius: 5px;
-			}
-			            @keyframes fan-rotate {
-                0%   {transform: rotate(0);
-                25%  {transform: rotate(90deg)}
-                50%  {transform: rotate(180deg)}
-                75%  {transform: rotate(270deg)}
-                100% {transform: rotate(0)}
+            }
+            @keyframes fan-rotate {
+                0%   {transform: rotate(0);}
+                12.5%  {transform: rotate(45deg);}
+                25%  {transform: rotate(90deg);}
+                37.5%  {transform: rotate(135deg);}
+                50%  {transform: rotate(180deg);}
+                62.5%  {transform: rotate(235deg);}
+                75%  {transform: rotate(270deg);}
+                87.5%  {transform: rotate(315deg);}
+                100% {transform: rotate(360deg);}
+            }
+            .fan-image 
+            {
+                width: 100%;
+                height: 100%;
+                animation-name: fan-rotate;
+                animation-duration: 0s;
+                animation-iteration-count: infinite;
+                animation-timing-function: linear;
+                transition: animation-duration 3s;
+            }
+            .fan-image.fan-on 
+            {
+                animation-duration: 1s;
+            }
+            .fan-image.fan-on.fan-wait 
+            {
+                animation-duration: 3s;
             }
 		</style>
 	</head>
@@ -43,7 +65,17 @@
 			</div>
 			<div class="row mt-3">
 				<div class="col-4" id="GrillStatus">
-					<h3 class="text-center mb-3">Grill Status:</h3>
+                    <div class="row text-center mb-2">
+                        <h3 class="text-center mb-0">Grill Status:</h3>
+                        <small id="StatusGrillConnection">Grill Disconnected</small>
+                    </div>
+                    <div class="row data-field-group my-1">
+						<label class="col-6 offset-1 text-right pr-3" for="StatusGrillIPSelection">Grill IP:</label>
+						<input class="col-3" type="text" name="control-fan-speed-selection" id="StatusGrillIPSelection" placeholder="IP Address">
+						<div class="col-2">
+							<button class="set-button" type="button" data-target="StatusGrillIPSelection">Set</button>
+						</div>
+					</div>
 					<div class="row data-field-group my-1">
 						<label class="col-8 text-right pr-5" for="StatusCurrentTemp">Current Temp:</label>
 						<input class="col-4" type="text" name="status-current-temp" id="StatusCurrentTemp" readonly value="65.0">
@@ -60,19 +92,25 @@
 						<label class="col-8 text-right pr-5" for="StatusFanDutyCycle">Fan Duty Cycle:</label>
 						<input class="col-4" type="text" name="status-current-temp" id="StatusFanDutyCycle" readonly value="15s per 60s">
 					</div>
+                    <div class="row my-1">
+                    <div class="col-4 offset-6 my-2">
+                        <img id="StatusFanImage" class="fan-image" src="fanCentered.svg" alt="">
+                    </div>
+                    </div>
 				</div>
 				<div class="col-4" id="GrillControl">
 					<h3 class="text-center mb-3">Grill Control:</h3>
 					<div class="row data-field-group my-1">
 						<label class="col-6 text-right pr-5" for="ControlCurrentMode">Current Mode:</label>
-						<input class="col-6" type="text" name="control-current-modue" id="ControlCurrentMode" readonly value="Disabled">
+						<input class="col-6" type="text" name="control-current-modue" id="ControlCurrentMode" readonly value="DISABLED">
 					</div>
 					<div class="row data-field-group my-1">
 						<label class="col-6 text-right pr-5" for="ControlModeSelection">Control Mode:</label>
 						<select class="col-4" name="control-mode-selection" id="ControlModeSelection">
 							<option value="0">Disabled</option>
-							<option value="1">Standard</option>
-							<option value="2">PID</option>
+                            <option value="1">Manul</option>
+							<option value="2">Standard</option>
+							<option value="3">PID</option>
 						</select>
 						<div class="col-2">
 							<button class="set-button" type="button" data-target="ControlModeSelection">Set</button>
@@ -165,7 +203,8 @@
 				<div class="col-12" id="Logger"></div>
 			</div>
 		</div>
-        <script type="text/javascript" src="js/index.js">
+        <script type="text/javascript" src="js/vendors~main.js"></script>
+        <script type="text/javascript" src="js/main.js">
         </script>
 	</body>
 </html>
