@@ -21,7 +21,7 @@ export class GrillStatus
 
     get currentTemp(): number 
     {
-        let temp = this.grillTemp.toPrecision(2);
+        let temp = this.grillTemp.toFixed(2);
         return parseFloat(temp);
     }
 
