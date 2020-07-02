@@ -37,7 +37,7 @@ export class GrillStatus
 
     get fanOnTime(): number 
     {
-        return this.currentOnTime;
+        return this.currentOnTime / 100;
     }
 
     get fanCycleTime(): number 
