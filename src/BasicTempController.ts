@@ -26,6 +26,8 @@ export class BasicTempController
     
     protected lastTemp = 0;
 
+    protected setPoint = 0;
+
     constructor(protected comms: GrillCommunicator)
     {
 
@@ -177,15 +179,15 @@ export class BasicTempController
         if (change > 0)
         {
             //Set Point is the target less positive going hysteresis
-            setPoint = this.targetTemp - this.posH;
+            this.setPoint = this.targetTemp - this.posH;
         }
         //IF TEMPERATURE IS DECREASING 
         else if (change < 0)
         {
             //Set Point is the target less negative going hysteresis
-            var setPoint = this.targetTemp - this.negH;
+            this. setPoint = this.targetTemp - this.negH;
         }
-        //IF TEMPERATURE IS NOT CHANGING, SET POINT IS TARGET
+        //IF TEMPERATURE IS NOT CHANGING, SET POINT DOES NOT MOVE
         else {}
         if (currentTemp < setPoint) this.turnOnFan();
         else this.turnOffFan();
