@@ -165,10 +165,9 @@ export class BasicTempController
 
     newTemperature(temp: number)
     {
-        this.lastTemp = this.curTemp;
         this.curTemp = temp;
         if (this.active) this.control(temp);
-
+        this.lastTemp = temp;
     }
 
     protected control(currentTemp: number)
@@ -185,7 +184,7 @@ export class BasicTempController
         else if (change < 0)
         {
             //Set Point is the target less negative going hysteresis
-            this. setPoint = this.targetTemp - this.negH;
+            this. setPoint = this.targetTemp + this.negH;
         }
         //IF TEMPERATURE IS NOT CHANGING, SET POINT DOES NOT MOVE
         else {}
