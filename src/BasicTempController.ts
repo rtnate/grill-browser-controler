@@ -173,7 +173,6 @@ export class BasicTempController
     protected control(currentTemp: number)
     {
         let change = currentTemp - this.lastTemp;
-        var setPoint = this.targetTemp;
         //IF TEMPERATURE IS INCREASING
         if (change > 0)
         {
@@ -188,7 +187,7 @@ export class BasicTempController
         }
         //IF TEMPERATURE IS NOT CHANGING, SET POINT DOES NOT MOVE
         else {}
-        if (currentTemp < setPoint) this.turnOnFan();
+        if (currentTemp < this.setPoint) this.turnOnFan();
         else this.turnOffFan();
     }
 
