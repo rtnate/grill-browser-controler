@@ -28,6 +28,12 @@ export class BasicTempController
 
     protected setPoint = 0;
 
+    protected fanOnTime = 0;
+    
+    protected fanOffTime = 0;
+
+    protected fanState = false;
+
     constructor(protected comms: GrillCommunicator)
     {
 
@@ -101,18 +107,44 @@ export class BasicTempController
     {
         if (time === NaN) return;
         if (time <= 0) time = 0;
-        if (time >= this.fanCycle)
-        {
-            this.fanDuty = 100;
-            return;
-        }
-        let fract = time / this.fanCycle;
-        this.fanDuty = fract * 100;
+        if (time >= 120000) time = 120000;
+        this.fanOnTime = time;
         this.updated();
     }
 
-    get onTime(): number { return this.fanDuty/100 * this.fanCycle; };
+    get onTime(): number { return this.fanOnTime; };
 
+    set offTime(time: number)
+    {
+        if (time === NaN) return;
+        if (time <= 0) time = 0;
+        if (time >= 120000) time = 120000;
+        this.fanOffTime = time;
+        this.updated();
+    }
+
+    get offTime(){ return this.fanOffTime; };
+
+    set cycleOnTime(time: number)
+    {
+        if (time === NaN) return;
+        if (time <= 0) time = 0;
+        if (time >= this.fanCycle)
+        {
+            this.fanDuty = 100;
+        }
+        else 
+        {
+            let fract = time / this.fanCycle;
+            this.fanDuty = fract * 100;
+        }
+    }
+
+    get cycleOnTime(): number 
+    {
+        return this.fanDuty/100 * this.fanCycle;
+    }
+    
     set cycleTime(time: number)
     {
         if (time === NaN) return;
@@ -136,14 +168,14 @@ export class BasicTempController
                 this.fanSpeed = parseFloat(event.value);
                 break;
             case 'ControlDutyCycleSelectionOn':
-                let dutyOn = parseFloat(event.value);
+                let onTime = parseFloat(event.value);
                 let ip = document.getElementById('ControlDutyCycleSelectionCycle');
                 if (ip)
                 {
                     let value = (ip as HTMLInputElement).value;
-                    this.cycleTime = parseFloat(value);
+                    this.offTime = parseFloat(value);
                 }
-                this.onTime = dutyOn;
+                this.onTime = onTime;
                 break;
             case 'ControlPositiveHSetting':
                 this.positiveHys = parseFloat(event.value);
@@ -193,16 +225,29 @@ export class BasicTempController
 
     protected turnOnFan()
     {
-        if (this.comms.connectionActive) this.comms.setFan(this.fanSpeed, this.fanDuty, this.fanCycle);
+        this.fanState = true;
+        if (this.comms.connectionActive) this.comms.setFanOnOff(this.fanSpeed, this.fanOnTime, this.fanOffTime);
     }
 
     protected turnOffFan()
     {
-        if (this.comms.connectionActive) this.comms.setFan(0, this.fanDuty, this.fanCycle);
+        this.fanState = false;
+        if (this.comms.connectionActive) this.comms.setFanOnOff(0, this.fanOnTime, this.fanOffTime);
+    }
+
+    protected updateFan()
+    {
+        let speed = this.fanState ? this.fanSpeed : 0;
+        if (this.comms.connectionActive) this.comms.setFanOnOff(speed, this.fanOnTime, this.fanOffTime).then(
+            (result) => console.log("Updated Fan: ", result)
+        ).catch(
+            (err) => console.error(err)
+        )
     }
 
     protected updated()
     {
+        if (this.active) this.updateFan();
         this.updateListeners.forEach((listener) => listener(this));
     }
 
@@ -217,6 +262,10 @@ export class BasicTempController
             fanDuty: this.fanDuty,
 
             fanCycle: this.fanCycle,
+
+            offTime: this.offTime,
+
+            onTime: this.onTime,
 
             active: this.active,
 
@@ -254,6 +303,11 @@ export class BasicTempController
         if (state.hasOwnProperty('curTemp')) this.curTemp = state.curTemp;
 
         if (state.hasOwnProperty('lastTemp')) this.lastTemp = state.lastTemp;
+
+        if (state.hasOwnProperty('onTime')) this.onTime = state.onTime;
+
+        if (state.hasOwnProperty('offTime')) this.offTime = state.offTime;
+
         this.updated();
     }
 

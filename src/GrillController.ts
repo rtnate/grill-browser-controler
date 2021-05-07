@@ -48,8 +48,10 @@ export class GrillController
                 button.onclick = (event) => this.setButtonClicked(button as HTMLButtonElement, event);
             }
         });
+        let pidReset = document.getElementById('pidReset');
+        if (pidReset != null) pidReset.onclick = () => this.pidController.reset();
         this.loadControllerStatus();
-        this.status.enableAutoUpdate(2000);
+        this.status.enableAutoUpdate(500);
         console.log("Grill Controller Booted.");
     }
 
@@ -124,7 +126,7 @@ export class GrillController
         let fanSpeed =  status.fanSpeed ? status.fanSpeed.toString() : 'OFF';
         let fanStatus = status.fanStatus ? 'ON' : 'OFF';
         this.updateFanGraphicDisplay(status.fanStatus, status.fanSpeed);
-        let dutyCycle = `${status.fanOnTime.toString()}s per ${status.fanCycleTime.toString()}s`;
+        let dutyCycle = status.fanDutyString;
         this.updateMainTempDisplay(temp, tempString);
         this.setInputValueById('StatusCurrentTemp', tempString);
         this.setInputValueById('StatusFanState', fanStatus);
@@ -189,9 +191,10 @@ export class GrillController
     {
         let targetTemp = controller.targetTemp;
         let fanSpeed = controller.fanSpeed;
-        let dutyOn = controller.onTime;
+        let onTime = (controller.onTime / 1000).toFixed(2);
+        let offTime = (controller.offTime / 1000).toFixed(2);
         let dutyCycle = controller.cycleTime;
-        let dutyString = dutyOn.toString() + 's per ' + dutyCycle.toString() + 's';
+        let dutyString = `On ${onTime}s, Off ${offTime}s`;
         let tempString = targetTemp.toString() + " °F";
         let state = this.getControllerStateDisplay();
         this.setInputValueById('ControlCurrentMode', state);
@@ -206,10 +209,14 @@ export class GrillController
 
     protected storeControllerStatus()
     {
-        let status = this.basicController.getState();
+        let basicStatus = this.basicController.getState();
+        let pidStatus = this.pidController.getState();
+        let ip = this.grillComms.getIP();
         let data = 
         {
-            basicController: status
+            basicController: basicStatus,
+            pidController: pidStatus,
+            ipAddress: ip
         };
         let dataString = JSON.stringify(data);
         localStorage.setItem('bbq-data', dataString);
@@ -225,6 +232,17 @@ export class GrillController
                 if (data.hasOwnProperty('basicController'))
                 {
                     this.basicController.loadState(data.basicController);
+                }
+                if (data.hasOwnProperty('pidController'))
+                {
+                    this.pidController.loadState(data.pidController);
+                }
+                if (data.hasOwnProperty('ipAddress'))
+                {
+                    if (typeof(data.ip) == 'string')
+                    {
+                        if (data.ip.length > 3) this.grillComms.setIP(data.ip);
+                    }
                 }
             }
             catch (e)
@@ -294,6 +312,7 @@ export class GrillController
                 this.setInputValueById('PidOutputFanDuty', dutyString);
                 return;
         }
+        this.storeControllerStatus();
     }
 
 }

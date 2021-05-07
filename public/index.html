@@ -6,6 +6,11 @@
 		<link rel="stylesheet" href="css/bootstrap.min.css">
 		<title>Grill Controller</title>
 		<style>
+			button
+			{
+				text-align: center;
+				border-radius: 5px;
+			}
 			.set-button {
 				width: 100%;
 				text-align: center;
@@ -164,10 +169,10 @@
 						<input class="col-5" type="text" name="control-current-fan-speed" id="ControlCurrentDutyCycle" readonly value="15s per 60s">
 					</div>
 					<div class="row data-field-group my-1">
-						<label class="col-4 text-right pr-3" for="ControlDutyCycleSelectionOn">Duty Cycle:</label>
+						<label class="col-4 text-right pr-3" for="ControlDutyCycleSelectionOn">On (ms):</label>
 						<input class="col-2" type="text" name="control-duty-cycle-selection-on" id="ControlDutyCycleSelectionOn" placeholder="On">
-						<label class="col-2 text-center" for="ControlDutyCycleSelectionCycle">per</label>
-						<input class="col-2" type="text" name="control-duty-cycle-selection-off" id="ControlDutyCycleSelectionCycle" placeholder="Cycle">
+						<label class="col-2 text-center" for="ControlDutyCycleSelectionCycle">Off (ms):</label>
+						<input class="col-2" type="text" name="control-duty-cycle-selection-off" id="ControlDutyCycleSelectionCycle" placeholder="Off">
 						<div class="col-2">
 							<button class="set-button" type="button" data-target="ControlDutyCycleSelectionOn">Set</button>
 						</div>
@@ -198,6 +203,11 @@
                 <!--- PID Control Status -->
 				<div class="col-4 offset-2" id="PidControl">
                     <h3 class="text-center mb-3">PID Control:</h3>
+					<div class="row data-field-group my-1 mt-2">
+						<div class="col-6 offset-6 text-center">
+							<button class="text-center" id="pidReset" type="button">Reset PID</button>
+						</div>
+					</div>
                     <div class="row data-field-group my-1 mt-2">
 						<label class="col-6 text-right pr-3" for="PidCurrentState">State: </label>
 						<input class="col-6" type="text" name="pid-current-state" id="PidCurrentState" readonly value="P: 0.00 I: 0.00 D: 0.00">

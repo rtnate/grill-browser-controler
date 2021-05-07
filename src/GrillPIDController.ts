@@ -63,10 +63,10 @@ export class GrillPIDController extends PIDControler
     processTemperature(newTemp: number)
     {
         let controlVal = this.calculate(newTemp);
-        controlVal = this.mapControlVal(controlVal);
-        this.outputSpeed = this.mapFanSpeed(controlVal);
-        let cycleOn = this.mapDutyCycle(controlVal);
-        this.outputCycle = 60;
+        //controlVal = this.mapControlVal(controlVal);
+        this.outputSpeed = Math.round(this.mapControlVal(controlVal));
+        let cycleOn = 15;
+        this.outputCycle = 30;
         this.outputDuty = (cycleOn / this.outputCycle) * 100;
         this.changed('fanSpeedOut', this.outputSpeed);
         if (this.isEnabled) this.comms.setFan(this.outputSpeed, this.outputDuty, this.outputCycle);
@@ -74,10 +74,9 @@ export class GrillPIDController extends PIDControler
 
     protected mapControlVal(value: number)
     {
-        value *= this.controlMasterScale;
-        if (value >= 1 ) value = 1;
-        if (value <= 0) value = 0;
-        return value;
+        if (value >= this.fanSpeedMax) return this.fanSpeedMax;
+        else if (value <= this.fanSpeedMin) return 0;
+        else return value;
     }
 
     protected mapFanSpeed(value: number)
@@ -123,5 +122,53 @@ export class GrillPIDController extends PIDControler
             default:
                 return;
         }
+    }
+
+    getState()
+    {
+        let val = 
+        {
+            lastError: this.lastError,
+            cumError: this.cumError,
+            gP: this.gP,
+            gI: this.gI,
+            gD: this.gD,
+            setPoint: this.setPoint,
+            lastControlVal: this.lastControlVal,
+            lastRateError: this.lastRateError, 
+            startTime: this.startTime,
+            previousTime: this.previousTime,
+            controlMasterScale: this.controlMasterScale,
+            maxSpeed: this.maxSpeed,
+            minSpeed: this.minSpeed,
+            maxCycle: this.maxCycle,
+            enabled: this.enabled,
+            outputSpeed: this.outputSpeed,
+            outputDuty: this.outputDuty,
+            outputCycle: this.outputCycle
+        };
+        return val;
+    }
+
+    loadState(state: any)
+    {
+        // if (state.hasOwnProperty('lastError')) this.lastError = state.lastError;
+        // if (state.hasOwnProperty('cumError')) this.cumError = state.cumError;
+        if (state.hasOwnProperty('gP')) this.P = state.gP;
+        if (state.hasOwnProperty('gI')) this.I = state.gI;
+        if (state.hasOwnProperty('gD')) this.D = state.gD;
+        if (state.hasOwnProperty('setPoint')) this.target = state.setPoint;
+        // if (state.hasOwnProperty('lastControlVal')) this.lastControlVal = state.lastControlVal;
+        // if (state.hasOwnProperty('lastRateError')) this.lastRateError = state.lastRateError; 
+        // if (state.hasOwnProperty('startTime')) this.startTime = state.startTime;
+        // if (state.hasOwnProperty('previousTime')) this.previousTime = state.previousTime;
+        if (state.hasOwnProperty('controlMasterScale')) this.controlMasterScale = state.controlMasterScale;
+        if (state.hasOwnProperty('maxSpeed')) this.fanSpeedMax = state.maxSpeed;
+        if (state.hasOwnProperty('minSpeed')) this.fanSpeedMin = state.minSpeed;
+        if (state.hasOwnProperty('maxCycle')) this.maxCycle = state.maxCycle;
+        if (state.hasOwnProperty('enabled')) this.enabled = state.enabled;
+        // if (state.hasOwnProperty('outputSpeed')) this.outputSpeed = state.outputSpeed;
+        // if (state.hasOwnProperty('outputDuty')) this.outputDuty = state.outputDuty;
+        // if (state.hasOwnProperty('outputCycle')) this.outputCycle = state.outputCycle;  
     }
 }

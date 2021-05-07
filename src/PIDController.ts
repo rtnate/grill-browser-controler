@@ -28,6 +28,7 @@ export class PIDControler implements PIDControlerInterface
 
     protected startTime = new Date;
     protected previousTime = new Date;
+    protected logUpdates = false;
 
     protected changedEvent = new BasicEventEmitter<PIDControllerChangedEvent>();
 
@@ -35,6 +36,15 @@ export class PIDControler implements PIDControlerInterface
 
     }
 
+    reset()
+    {
+        this.lastControlVal = 0;
+        this.lastError = 0;
+        this.cumError = 0;
+        this.lastRateError = 0;
+        this.startTime = new Date;
+        this.previousTime = new Date;
+    }
     get P()
     {
         return this.gP;
@@ -91,7 +101,9 @@ export class PIDControler implements PIDControlerInterface
     {
         let now = new Date().getTime();
         let elapsedTime = (now - this.previousTime.getTime()) / 1000;
+        if (this.logUpdates) console.log("PID Elapsed Time:", elapsedTime);
         let error = this.setPoint - input;
+        if (this.logUpdates) console.log("PID Error: ", error, "Input: ", input, "Set Point: ", this.setPoint);
         let cumError = error * elapsedTime;
         this.cumError += cumError;
         let rateError = (error - this.lastError) / elapsedTime;
@@ -115,5 +127,7 @@ export class PIDControler implements PIDControlerInterface
     {
         this.changedEvent.emit({parameter: parameter, value: value});
     }
+
+    
 
 }

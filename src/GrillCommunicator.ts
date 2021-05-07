@@ -32,28 +32,60 @@ export class GrillCommunicator
         //     rthis.reqFanSpeed(speed);
         // });
     }
-    getGrillStatus()
+
+    setFanOnOff(speed: number, onTime: number, offTime: number)
+    {
+        if (!this.connectionActive) return Promise.reject('No Active Connection');
+        return this.reqFanSpeedOnOff(speed, onTime, offTime);
+    }
+
+    async getGrillStatus()
     {
         if (!this.successfulConnection) return Promise.reject("Grill communcation not established");
-        return new Promise( (resolve, reject) => 
+
+        let attemptsToMake = 5;
+
+        while(attemptsToMake)
         {
-            this.reqGrillStatus().then(
-                (data) => {
-                    resolve(data);
-                }
-            ).catch(
-                (error) => {
-                    this.failCount++;
-                    if (this.failCount > 5)
-                    {
-                        console.error("Status Update Failed: ", error);
-                        this.commsFailed(this.ip);
-                        reject(error);
-                    }
-                    else resolve(null);
-                }
-            )
-        });
+            let result = await this.attemptUpdateStatus();
+            if (result.success == true)
+            {
+                let res = result.response ?? {};
+                return res;
+            }
+            else 
+            {
+                console.warn("Comms Failed: ", result.error);
+                attemptsToMake--;
+            }
+        }
+        this.commsFailed(this.ip);
+        throw new Error("Unable to communicate with grill");
+    }
+
+    protected async attemptUpdateStatus(): 
+        Promise<{success: boolean, response?: any, error?: any}>
+    {
+        try 
+        {
+            let response = await this.reqGrillStatus();
+            let result = 
+            {
+                success: true,
+                response: response
+            };
+            return result;
+        }
+        catch(err)
+        {
+            let result = 
+            {
+                success: false,
+                error: err
+            }
+            return result;
+        }
+    
     }
 
     protected async reqFanSpeed(speed: number, duty: number = 100, cycle_rate: number = 60)
@@ -65,13 +97,33 @@ export class GrillCommunicator
         };
         return this.makeRequest('fan', 'POST', body);
     }
+
+    protected async reqFanSpeedOnOff(speed: number, onTime: number, offTime: number)
+    {
+        let body = {
+            speed: speed,
+            on_time: onTime,
+            off_time: offTime
+        };
+        try 
+        {
+            console.log("Make Request Test");
+            let res = this.makeRequest('fan', 'POST', body);
+            return res;
+        } 
+        catch(err)
+        {
+            console.error("Fan Tx Failed: ", err);
+        }
+    }
+
     protected async reqGrillStatus()
     {
         let response = await this.makeRequest('status');
-        return response.json();
+        return response?.json() ?? {};
     }
 
-    protected setIP(ip: string)
+    public setIP(ip: string)
     {
         this.ip = ip;
         this.testRequest().then(
@@ -80,6 +132,8 @@ export class GrillCommunicator
             () => this.commsFailed(ip)
         );
     }
+
+    public getIP(){ return this.ip; };
 
     protected updateMessage(message: string)
     {
@@ -148,7 +202,7 @@ export class GrillCommunicator
     async testRequest()
     {
         let response = await this.makeRequest('');
-        return response.status;
+        return response?.status ?? null;
     }
 
     async makeRequest(endpoint: string, method: string|null = null, body: any = null)
@@ -158,6 +212,16 @@ export class GrillCommunicator
         if (method) opts.method = method;
         if (endpoint === '/') endpoint = '';
         let url = `http://${this.ip}/${endpoint}`;
-        return fetch(url, opts);
+        try 
+        {
+            return await fetch(url, opts);
+        }
+        catch(err)
+        {
+            console.log("Failed");
+            console.log(err);
+            return null;
+        }
+        //return fetch(url, opts);
     }
 }
